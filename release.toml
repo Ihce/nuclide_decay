@@ -1,11 +1,11 @@
-[release]
-# One version for the entire workspace
-shared-version = true          # same as the old `workspace = true`
-consolidate    = true          # single history/changelog commit
-publish        = false         # flip to true when you really want `cargo publish`
 
-# Optional niceties
-conventional   = true          # use Conventional Commits for CHANGELOG
+# release.toml  – root keys, no table header
+shared-version = true          # one version across the workspace
+consolidate    = true          # single changelog+tag commit
+publish        = false         # set true when you want `cargo publish`
+
+# optional polish
+conventional   = true          # Conventional-Commits → CHANGELOG
 tag-name       = "v{{version}}"
 tag-message    = "Release {{version}}"
 pre-release-commit-message = "chore: (cargo-release) bump to {{version}}"
