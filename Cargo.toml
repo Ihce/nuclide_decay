@@ -1,0 +1,20 @@
+[workspace]
+members = [
+    "crates/decay_core",
+    "crates/decoder_capstone",
+    "crates/strategy_linear",
+    "crates/strategy_recursive",
+    "crates/strategy_superset",
+    "crates/strategy_probalistic",
+]
+
+[workspace.dependencies]
+rayon  = "1.10"
+anyhow = "1.0"
+
+[workspace.package]
+version  = "0.0.1"
+edition  = "2021"
+license  = "MIT"
+authors  = ["Dylan Stancil"]
+repository = "https://github.com/Ihce/nuclide_decay"

@@ -1,0 +1,8 @@
+[package]
+name    = "strategy_recursive"
+
+[dependencies]
+decay_core       = { path = "../decay_core" }
+decoder_capstone = { path = "../decoder_capstone" }
+rayon            = { workspace = true }
+

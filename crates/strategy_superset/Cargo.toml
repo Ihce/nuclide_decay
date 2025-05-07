@@ -1,0 +1,8 @@
+[package]
+name    = "strategy_superset"
+
+[dependencies]
+decay_core       = { path = "../decay_core" }
+decoder_capstone = { path = "../decoder_capstone" }
+rayon            = { workspace = true }
+

@@ -1,0 +1,5 @@
+[package]
+name    = "decay_core"
+
+[dependencies]
+

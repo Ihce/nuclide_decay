@@ -1,0 +1,8 @@
+[package]
+name    = "strategy_probalistic"
+
+[dependencies]
+decay_core       = { path = "../decay_core" }
+strategy_superset = { path = "../strategy_superset" }
+rayon            = { workspace = true }
+

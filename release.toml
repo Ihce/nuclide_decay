@@ -1,0 +1,6 @@
+workspace     = true        # treat the workspace as one package
+consolidate   = true        # same version for every crate
+publish       = false       # switch to true when you’re ready for crates.io
+conventional  = true        # use Conventional Commits for CHANGELOG
+tag_name      = "v{{version}}"
+tag_message   = "Release {{version}}"
