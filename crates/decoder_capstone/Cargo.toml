@@ -3,5 +3,5 @@ name    = "decoder_capstone"
 
 [dependencies]
 decay_core = { path = "../decay_core" }
-capstone   = { version = "0.12", default-features = false, features = ["x86", "arm", "mips", "riscv", "ppc"] }
+capstone   = { version = "0.12"}
 
