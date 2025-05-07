@@ -1,4 +1,3 @@
-
 # release.toml  – root keys, no table header
 shared-version = true          # one version across the workspace
 consolidate    = true          # single changelog+tag commit
