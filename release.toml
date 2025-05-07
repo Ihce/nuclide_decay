@@ -1,6 +1,12 @@
-workspace     = true        # treat the workspace as one package
-consolidate   = true        # same version for every crate
-publish       = false       # switch to true when you’re ready for crates.io
-conventional  = true        # use Conventional Commits for CHANGELOG
-tag_name      = "v{{version}}"
-tag_message   = "Release {{version}}"
+[release]
+# One version for the entire workspace
+shared-version = true          # same as the old `workspace = true`
+consolidate    = true          # single history/changelog commit
+publish        = false         # flip to true when you really want `cargo publish`
+
+# Optional niceties
+conventional   = true          # use Conventional Commits for CHANGELOG
+tag-name       = "v{{version}}"
+tag-message    = "Release {{version}}"
+pre-release-commit-message = "chore: (cargo-release) bump to {{version}}"
+
