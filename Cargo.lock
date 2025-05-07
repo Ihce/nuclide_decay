@@ -58,11 +58,11 @@ checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
 name = "decay_core"
-version = "0.0.1"
+version = "0.1.0"
 
 [[package]]
 name = "decoder_capstone"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "capstone",
  "decay_core",
@@ -108,7 +108,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "strategy_linear"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "decay_core",
  "decoder_capstone",
@@ -117,7 +117,7 @@ dependencies = [
 
 [[package]]
 name = "strategy_probalistic"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "decay_core",
  "rayon",
@@ -126,7 +126,7 @@ dependencies = [
 
 [[package]]
 name = "strategy_recursive"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "decay_core",
  "decoder_capstone",
@@ -135,7 +135,7 @@ dependencies = [
 
 [[package]]
 name = "strategy_superset"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "decay_core",
  "decoder_capstone",
