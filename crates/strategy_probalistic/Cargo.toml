@@ -1,6 +1,7 @@
 [package]
 name    = "strategy_probalistic"
-
+version.workspace = true      # <── this tells Cargo to inherit 0.1.0
+edition = "2021"
 [dependencies]
 decay_core       = { path = "../decay_core" }
 strategy_superset = { path = "../strategy_superset" }
