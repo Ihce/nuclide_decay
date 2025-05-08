@@ -1,32 +1,82 @@
-//! Multi-ISA Capstone decoders implementing `decay_core::Decoder`.
-
-use capstone::{Arch, Capstone, Endian, Mode, NO_EXTRA_MODE};
+use capstone::{arch::BuildsCapstone, Capstone};
 use decay_core::{Address, Decoder, Insn};
 
-/// Build a configured `Capstone` handle.
-fn cs(arch: Arch, mode: Mode) -> Capstone {
+/*──────────────────────── helpers ───────────────────────*/
+
+fn build_x86_32() -> Capstone {
     Capstone::new()
-        .arch(arch)
-        .mode(mode)
-        .endian(Endian::Little) // change for big-endian MIPS/PPC if needed
-        .extra_mode(NO_EXTRA_MODE)
-        .detail(false)
+        .x86()
+        .mode(capstone::arch::x86::ArchMode::Mode32)
         .build()
-        .expect("capstone build failed")
+        .unwrap()
+}
+fn build_x86_64() -> Capstone {
+    Capstone::new()
+        .x86()
+        .mode(capstone::arch::x86::ArchMode::Mode64)
+        .build()
+        .unwrap()
+}
+fn build_armv7() -> Capstone {
+    Capstone::new()
+        .arm()
+        .mode(capstone::arch::arm::ArchMode::Arm)
+        .build()
+        .unwrap()
+}
+fn build_thumb() -> Capstone {
+    Capstone::new()
+        .arm()
+        .mode(capstone::arch::arm::ArchMode::Thumb)
+        .build()
+        .unwrap()
+}
+fn build_aarch64() -> Capstone {
+    Capstone::new()
+        .arm64()
+        .mode(capstone::arch::arm64::ArchMode::Arm)
+        .build()
+        .unwrap()
+}
+fn build_mips32() -> Capstone {
+    Capstone::new()
+        .mips()
+        .mode(capstone::arch::mips::ArchMode::Mips32)
+        .build()
+        .unwrap()
+}
+fn build_riscv32() -> Capstone {
+    Capstone::new()
+        .riscv()
+        .mode(capstone::arch::riscv::ArchMode::RiscV32)
+        .build()
+        .unwrap()
+}
+fn build_riscv64() -> Capstone {
+    Capstone::new()
+        .riscv()
+        .mode(capstone::arch::riscv::ArchMode::RiscV64)
+        .build()
+        .unwrap()
+}
+fn build_ppc32() -> Capstone {
+    Capstone::new()
+        .ppc()
+        .mode(capstone::arch::ppc::ArchMode::Mode32)
+        .build()
+        .unwrap()
 }
 
-/*────────────────────────  concrete structs  ───────────────────────*/
+/*──────────────────────── macro ───────────────────────*/
 
 macro_rules! mk_decoder {
-    ($name:ident, $arch:expr, $mode:expr) => {
+    ($name:ident, $builder:expr) => {
         pub struct $name {
             cs: Capstone,
         }
         impl $name {
             pub fn new() -> Self {
-                Self {
-                    cs: cs($arch, $mode),
-                }
+                Self { cs: $builder() }
             }
         }
         impl Default for $name {
@@ -39,43 +89,42 @@ macro_rules! mk_decoder {
                 if at as usize >= img.len() {
                     return None;
                 }
-                let insn = self
-                    .cs
-                    .disasm_count(&img[at as usize..], at, 1)
-                    .ok()?
-                    .iter()
-                    .next()?;
-                let mut buf = [0u8; 16]; // copy bytes
-                let bytes = insn.bytes();
-                buf[..bytes.len()].copy_from_slice(bytes);
-
-                let m = insn.mnemonic().unwrap_or("");
+                let disasm = self.cs.disasm_count(&img[at as usize..], at, 1).ok()?;
+                let insn = disasm.iter().next()?;
                 Some(Insn {
-                    addr: at,
-                    size: bytes.len() as u8,
-                    mnemonic: Box::leak(m.to_owned().into_boxed_str()),
-                    bytes: buf,
+                    addr: insn.address(),
+                    size: insn.bytes().len() as u8,
+                    bytes: {
+                        let mut arr = [0u8; 16];
+                        let len = insn.bytes().len().min(16);
+                        arr[..len].copy_from_slice(&insn.bytes()[..len]);
+                        arr
+                    },
+                    mnemonic: insn.mnemonic().unwrap_or("").to_string().leak(),
                 })
             }
         }
+        unsafe impl Send for $name {}
+        unsafe impl Sync for $name {}
     };
 }
 
-mk_decoder!(X86_32, Arch::X86, Mode::Mode32);
-mk_decoder!(X86_64, Arch::X86, Mode::Mode64);
-mk_decoder!(ARMv7, Arch::ARM, Mode::Arm);
-mk_decoder!(Thumb2, Arch::ARM, Mode::Thumb);
-mk_decoder!(AArch64, Arch::ARM64, Mode::Arm);
-mk_decoder!(Mips32, Arch::Mips, Mode::Mips32);
-mk_decoder!(RiscV32, Arch::RiscV, Mode::RiscV32);
-mk_decoder!(RiscV64, Arch::RiscV, Mode::RiscV64);
-mk_decoder!(Ppc32, Arch::Ppc, Mode::Ppc32);
+/*──────────────────────── concrete structs ───────────────────────*/
 
-/*────────────────────────  convenient enum  ───────────────────────*/
+mk_decoder!(X86_32, build_x86_32);
+mk_decoder!(X86_64, build_x86_64);
+mk_decoder!(ARMv7, build_armv7);
+mk_decoder!(Thumb2, build_thumb);
+mk_decoder!(AArch64, build_aarch64);
+mk_decoder!(Mips32, build_mips32);
+mk_decoder!(RiscV32, build_riscv32);
+mk_decoder!(RiscV64, build_riscv64);
+mk_decoder!(Ppc32, build_ppc32);
 
-/// The nine decoders behind one enum so callers can switch by string/flag.
+/*──────────────────────── enum façade ───────────────────────*/
+
 pub enum Multi {
-    X8632(X86_32),
+    X86_32(X86_32),
     X86_64(X86_64),
     Arm(ARMv7),
     Thumb(Thumb2),
@@ -87,10 +136,9 @@ pub enum Multi {
 }
 
 impl Multi {
-    /// Factory by short name (`"x86"`, `"thumb"`, `"riscv64"`, …)
     pub fn by_name(name: &str) -> Option<Self> {
         Some(match name.to_ascii_lowercase().as_str() {
-            "x86" | "i386" => Self::X8632(X86_32::new()),
+            "x86" | "i386" => Self::X86_32(X86_32::new()),
             "x86_64" | "amd64" => Self::X86_64(X86_64::new()),
             "arm" | "armv7" => Self::Arm(ARMv7::new()),
             "thumb" | "armv7t" => Self::Thumb(Thumb2::new()),
@@ -107,7 +155,7 @@ impl Multi {
 impl Decoder for Multi {
     fn decode(&self, img: &[u8], at: Address) -> Option<Insn> {
         match self {
-            Self::X8632(d) => d.decode(img, at),
+            Self::X86_32(d) => d.decode(img, at),
             Self::X86_64(d) => d.decode(img, at),
             Self::Arm(d) => d.decode(img, at),
             Self::Thumb(d) => d.decode(img, at),

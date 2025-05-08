@@ -22,15 +22,18 @@ impl Strategy for Superset {
             insns,
             succs: Vec::new(),
         };
-        Disassembly {
-            blocks: vec![block],
-        }
+        Disassembly::Stream(vec![Insn {
+            addr: 0,
+            size: 0,
+            mnemonic: "",
+            bytes: [0; 16],
+        }])
     }
 }
 
 /// Factory so the registry can create an instance quickly.
-pub fn make() -> Box<dyn Strategy> {
-    Box::new(Superset)
+pub fn make() -> Superset {
+    Superset
 }
 
 /*─────────────────────────────────────────────────────────────────*
