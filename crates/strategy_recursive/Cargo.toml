@@ -1,9 +1,0 @@
-[package]
-name    = "strategy_recursive"
-version.workspace = true      # <── this tells Cargo to inherit 0.1.0
-edition = "2021"
-[dependencies]
-decay_core       = { path = "../decay_core" }
-decoder_capstone = { path = "../decoder_capstone" }
-rayon            = { workspace = true }
-

@@ -1,20 +1,42 @@
-[workspace]
-members = [
-    "crates/decay_core",
-    "crates/decoder_capstone",
-    "crates/strategy_linear",
-    "crates/strategy_recursive",
-    "crates/strategy_superset",
-    "crates/strategy_probalistic",
-]
-
-[workspace.dependencies]
-rayon  = "1.10"
-anyhow = "1.0"
-
-[workspace.package]
-version  = "0.1.0"
-edition  = "2021"
-license  = "MIT"
-authors  = ["Dylan Stancil"]
+[package]
+name = "nuclide_decay"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dylan Stancil"]
+license = "MIT"
 repository = "https://github.com/Ihce/nuclide_decay"
+description = "A multi-architecture binary disassembler library"
+readme = "README.md"
+keywords = ["disassembler", "binary", "analysis", "security"]
+categories = ["development-tools", "parser-implementations"]
+build = "build.rs"
+
+[lib]
+name = "nuclide_decay"
+path = "src/lib.rs"
+# This line indicates this library can be used as a Python module
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+goblin       = "0.9"
+capstone     = "0.13"
+clap         = { version = "4.1", features = ["derive"] }
+anyhow       = "1.0"
+rayon        = "1.10"     # only needed by superset
+thiserror    = "2.0.12"
+log          = "0.4"
+serde        = { version = "1.0", features = ["derive"] }
+serde_json   = "1.0"
+csv          = "1.2"
+# Add PyO3 as a dependency with the extension-module feature
+pyo3         = { version = "0.24.2", features = ["extension-module"] }
+
+[features]
+extension-module = ["pyo3/extension-module"]
+
+[build-dependencies]
+# Empty for now
+
+[dev-dependencies]
+tempfile = "3.8"
+rstest = "0.25"

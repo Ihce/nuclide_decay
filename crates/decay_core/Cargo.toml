@@ -1,6 +1,0 @@
-[package]
-name    = "decay_core"
-version.workspace = true      # <── this tells Cargo to inherit 0.1.0
-edition = "2021"
-[dependencies]
-

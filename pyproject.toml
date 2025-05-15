@@ -1,0 +1,26 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "nuclide_decay"
+version = "0.1.0"
+description = "A multi-architecture binary disassembler"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Rust",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.maturin]
+# Don't use features = ["extension-module"], as that's trying to enable a feature of YOUR crate
+# Instead, use:
+features = ["extension-module"]
+# Keep the rest as-is
+module-name = "nuclide_decay.nuclide_decay"
+python-source = "python"
+sdist-include = ["Cargo.lock"]
+strip = true  # Strip debug symbols for smaller binaries

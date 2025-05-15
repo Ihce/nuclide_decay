@@ -1,0 +1,244 @@
+Metadata-Version: 2.4
+Name: nuclide_decay
+Version: 0.1.0
+Summary: A multi-architecture binary disassembler
+Author: Dylan Stancil
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Rust
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: author
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: license-file
+Dynamic: requires-python
+Dynamic: summary
+
+# Nuclide Decay
+
+A multi-architecture binary disassembler built with Rust.
+
+## Features
+
+- Multi-architecture support (x86, ARM, MIPS, RISC-V, PowerPC)
+- Multiple disassembly strategies:
+  - Linear sweep
+  - Recursive descent
+  - Superset disassembly
+  - Probabilistic disassembly
+- Support for various binary formats (ELF, PE, Mach-O)
+- Multiple output formats:
+  - Text (human-readable)
+  - JSON (structured data)
+  - JSONL (JSON Lines)
+  - CSV (for spreadsheets and data analysis)
+  - N-grams (for malware analysis)
+- Python bindings
+
+## Installation
+
+### Rust Library
+
+Add this to your Cargo.toml:
+
+```toml
+[dependencies]
+nuclide_decay = "0.1.0"
+```
+
+### Python Package
+
+```bash
+pip install nuclide_decay
+```
+
+## Usage
+
+### Rust API
+
+```rust
+use nuclide_decay::{
+    parser::GoblinParser,
+    decoder::CapstoneDecoder,
+    strategy::Strategy,
+    output::{OutputFormat, NgramParams},
+    BinaryParser,
+};
+
+// Read binary file
+let binary_data = std::fs::read("path/to/binary").unwrap();
+
+// Parse the binary format
+let parser = GoblinParser::new();
+let metadata = parser.parse(&binary_data).unwrap();
+
+// Create a decoder for the detected architecture
+let decoder = CapstoneDecoder::for_architecture(metadata.architecture).unwrap();
+
+// Select output format (default is text)
+let output_format = OutputFormat::Json;
+let formatter = output_format.get_formatter(None);
+
+// Disassemble executable sections
+for (region_data, base_addr) in metadata.get_executable_data(&binary_data) {
+    // Use linear sweep disassembly
+    let disassembly = Strategy::Linear.run(region_data, &decoder).unwrap();
+    
+    // Format the output
+    let output = formatter.format(&disassembly, base_addr).unwrap();
+    println!("{}", output);
+}
+```
+
+### Python API
+
+```python
+import nuclide_decay as nd
+
+# Disassemble a file and get text output
+result = nd.disassemble_file(
+    "path/to/binary",
+    strategy="linear",       # Options: "linear", "recursive", "superset", "probabilistic"
+    output_format="text"     # Default output format
+)
+print(result)
+
+# Disassemble with JSON output
+json_result = nd.disassemble_file(
+    "path/to/binary",
+    strategy="recursive",
+    output_format="json"
+)
+print(json_result)
+
+# Get CSV output for data analysis
+csv_result = nd.disassemble_file(
+    "path/to/binary",
+    output_format="csv"
+)
+with open("disassembly.csv", "w") as f:
+    f.write(csv_result)
+
+# N-gram analysis for malware similarity
+ngram_result = nd.disassemble_file(
+    "path/to/binary",
+    output_format="ngram",
+    ngram_size=3,                # Size of the n-gram (default: 3)
+    include_operands=True        # Include operands in n-grams (default: False)
+)
+print(ngram_result)
+
+# Get binary data as bytes and disassemble
+with open("path/to/binary", "rb") as f:
+    binary_data = f.read()
+
+result = nd.disassemble(
+    binary_data,
+    strategy="linear",
+    output_format="jsonl"    # JSON Lines format
+)
+```
+
+## Output Formats
+
+### Text
+
+Human-readable disassembly listing:
+
+```
+Disassembly at 0x1000:
+
+0x00001000: push       ebp                           ; 55
+0x00001001: mov        ebp, esp                      ; 89 e5
+0x00001003: sub        esp, 0x10                     ; 83 ec 10
+0x00001006: mov        eax, 0x1                      ; b8 01 00 00 00
+0x0000100b: ret                                      ; c3
+```
+
+### JSON
+
+Structured format for programmatic access:
+
+```json
+{
+  "sections": [
+    {
+      "base_address": "0x1000",
+      "type": "stream",
+      "instructions": [
+        {
+          "address": "0x1000",
+          "size": 1,
+          "mnemonic": "push",
+          "operands": "ebp",
+          "bytes": "55"
+        },
+        {
+          "address": "0x1001",
+          "size": 3,
+          "mnemonic": "mov",
+          "operands": "ebp, esp",
+          "bytes": "89 e5 90"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### JSON Lines
+
+Each line is a valid JSON object, good for streaming large outputs:
+
+```
+{"type":"instruction","base_address":"0x1000","address":"0x1000","size":1,"mnemonic":"push","operands":"ebp","bytes":"55"}
+{"type":"instruction","base_address":"0x1000","address":"0x1001","size":3,"mnemonic":"mov","operands":"ebp, esp","bytes":"89 e5 90"}
+```
+
+### CSV
+
+Tabular format for data analysis:
+
+```csv
+base_address,section_type,block_address,address,size,mnemonic,operands,bytes
+0x1000,stream,,0x1000,1,push,ebp,55
+0x1000,stream,,0x1001,3,mov,"ebp, esp",89 e5 90
+```
+
+### N-grams
+
+For instruction sequence analysis (useful for malware similarity):
+
+```json
+{
+  "n": 3,
+  "include_operands": false,
+  "total_instructions": 5,
+  "unique_ngrams": 3,
+  "ngrams": [
+    {
+      "sequence": "push mov sub",
+      "count": 1,
+      "percentage": 33.33333
+    },
+    {
+      "sequence": "mov sub mov",
+      "count": 1,
+      "percentage": 33.33333
+    },
+    {
+      "sequence": "sub mov ret",
+      "count": 1,
+      "percentage": 33.33333
+    }
+  ]
+}
+```
+
+## License
+
+MIT
